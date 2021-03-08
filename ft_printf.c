@@ -1,20 +1,69 @@
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+
+#define conversions "cspdiuxX%"
 
 static unsigned int g_rst;
 
 typedef struct	s_flags
 {
 	int	minus;
-	int	star;
 	int dot;
 	int zero;
-	int sharp;
-	int plus;
-	int blank;
+	int width;
 }				t_flags;
+
+size_t	ft_strlen(const char *s)
+{
+	size_t i;
+
+	i = 0;
+	while (s[i])
+		i++;
+	return (i);
+}
+
+void			ft_putchar(char c)
+{
+	write(1, &c, 1);
+	g_rst += 1;
+}
+
+void			ft_putstr(char *s)
+{
+	int len;
+
+	if (!s)
+		return ;
+	len = ft_strlen(s);
+	write(1, s, len);
+	g_rst += len;
+}
+
+int		ft_isdigit(int c)
+{
+	if (c >= '0' && c <= '9')
+		return (1);
+	return (0);
+}
+
+static int		ft_strchr(const char *s, int c) // 혹시 주소값으로 반환하면 if문에서 걸릴까봐 int형으로 바꿔줌
+{
+	char	*str;
+
+	str = (char *)s;
+	while (*str)
+	{
+		if (*str == (char)c)
+			return (1);
+		str++;
+	}
+	if ((char)c == '\0')
+		return (1);
+	return (0);
+}
 
 static int		ft_intlen(int n)
 {
@@ -61,58 +110,44 @@ char			*ft_itoa(int n)
 static void		init_flags(t_flags *flags)
 {
 	flags->minus = 0;
-	flags->star = 0;
-	flags->dot = 0;
+	flags->dot = -1; // 디폴트 -1, 0일 때 .만 .뒤에 숫자는 그대로 숫자 입력
 	flags->zero = 0;
-	flags->sharp = 0;
-	flags->plus = 0;
-	flags->blank = 0;
+	flags->width = 0;
 }
 
-static int		only_flags(char c, t_flags *flags)
+static void		flags_check(va_list ap, const char *fmt, t_flags *flags, unsigned int *i) // [flag][width][precision]각각 함수로 나눠야 함
 {
-	if (c == '0')
-		flags->zero = 1;
-	else if (c == '-')
-		flags->minus = 1;
-	else if (c == '.')
-		flags->dot = 1;
-	else if (c == '*')
-		flags->star = 1;
-	else if (c == '+')
-		flags->plus = 1;
-	else if (c == ' ')
-		flags->blank = 1;
-	else if (c == '#')
-		flags->sharp = 1;
-	else
-		return (0);
-	return (1);
-}
-
-static void		flags_check(char *fmt, t_flags *flags, int *i)
-{
-	while (fmt[(*i)])
+	while (fmt[*i] && !(ft_strchr(conversions, fmt[*i]))) // cspdiuxX%이 안나오면 갇힐 수 있음
 	{
-
+		if (fmt[*i] == '0' && flags->dot == -1 && flags->width == 0) // 0플래그
+			flags->zero = 1;
+		else if (fmt[*i] == '-' && flags->dot == -1 && flags->width == 0) // -플래그
+			flags->minus = 1;
+		else if (flags->dot == -1 && (ft_isdigit(fmt[*i]) || fmt[*i] == '*')) // width
+		{
+			if (fmt[*i] == '*') 
+			{
+				flags->width = va_arg(ap, int);
+				if (flags->width < 0)
+				{
+					flags->minus = 1;
+					flags->width *= -1;
+				}
+			}
+			else
+				flags->width = (flags->width * 10) + (fmt[*i] - '0');	
+		}
+		else if (fmt[*i] == '.' || (flags->dot >= 0 && (ft_isdigit(fmt[*i]) || fmt[*i] == '*')))
+		{
+			if (fmt[*i] == '.')
+				flags->dot = 0;
+			else if (fmt[*i] == '*') // precision에 (-)플래그 못옴
+				flags->dot = va_arg(ap, int);
+			else
+				flags->dot = (flags->dot * 10) + (fmt[*i] - '0');
+		}
+		(*i)++;
 	}
-}
-
-void			ft_putchar(char c)
-{
-	write(1, &c, 1);
-	g_rst += 1;
-}
-
-void			ft_putstr_fd(char *s, int fd)
-{
-	int len;
-
-	if (!s)
-		return ;
-	len = ft_strlen(s);
-	write(fd, s, len);
-	g_rst += len;
 }
 
 static void		print_d(va_list ap, t_flags *flags)
@@ -126,13 +161,9 @@ static void		print_d(va_list ap, t_flags *flags)
 	str = 0;
 }
 
-static int		format_specifier(va_list ap, char c, t_flags *flags)
+static int		format_specifier(va_list ap, char c, t_flags *flags) //cspdiuxX%
 {
-	if (c == 'c')
-		print_c(ap, flags);
-	else if (c == 's')
-		print_s(ap, flags);
-	else if (c == 'd')
+	if (c == 'd')
 		print_d(ap, flags);
 	else
 		return (0);
@@ -141,23 +172,29 @@ static int		format_specifier(va_list ap, char c, t_flags *flags)
 
 static void		ft_vsprintf(va_list ap, const char *fmt)
 {
-	unsigned int i;
-	unsigned int j;
-	t_flags *flags;
+	unsigned int	i;
+	t_flags			*flags;
 	
+	flags = (t_flags *)malloc(sizeof(t_flags) * 1);
+	if (!flags)
+	{
+		g_rst = -1;
+		return ;
+	}
 	i = 0;
 	while (fmt[i])
 	{
 		if (fmt[i++] =='%')
 		{
 			init_flags(flags);
-			flags_check(&fmt[i], flags, &i);
+			flags_check(ap, &fmt[i], flags, &i);
 			i += format_specifier(ap, fmt[i], flags);
 		}
 		else
 			ft_putchar(fmt[i]);
 		i++;
 	}
+	free(flags);
 }
 
 int				ft_printf(const char *fmt, ...)
@@ -171,5 +208,13 @@ int				ft_printf(const char *fmt, ...)
 
 int main()
 {
+	printf("|%08.6d|\n", -12345);
+	//printf("|%.6d|\n", -12345);
+	//printf("|%06d|\n", -12345);
+	
+	printf("\n");
 
+	ft_printf("|%08.6d|\n", -12345);
+	//ft_printf("|%.6d|\n", -12345);
+	//ft_printf("|%06d|\n", -12345);
 }
