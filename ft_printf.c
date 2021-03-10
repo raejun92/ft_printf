@@ -267,7 +267,7 @@ int main()
 	printf("|%06d|\n", 12345);
 	printf("|%-7.9d|\n", 12345);
 	printf("|%09d|\n", 12345);
-
+	printf("|%0*d|\n", -9, 12345);
 	
 	printf("\n");
 
@@ -276,6 +276,7 @@ int main()
 	ft_printf("|%06d|\n", 12345);
 	ft_printf("|%-7.9d|\n", 12345);
 	ft_printf("|%09d|\n", 12345);
+	printf("|%0*d|\n", -9, 12345);
 
 	//system("leaks a.out > leaks_result_temp; cat leaks_result_temp | grep leaked && rm -rf leaks_result_temp");
 }
