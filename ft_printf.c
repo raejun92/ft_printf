@@ -5,7 +5,7 @@
 
 #define conversions "cspdiuxX%"
 
-static unsigned int g_rst;
+static int g_rst;
 
 typedef struct	s_flags
 {
@@ -18,20 +18,19 @@ typedef struct	s_flags
 size_t	ft_strlen(const char *s)
 {
 	size_t i;
-
 	i = 0;
 	while (s[i])
 		i++;
 	return (i);
 }
 
-void			ft_putchar(char c)
+static void		ft_putchar(char c)
 {
 	write(1, &c, 1);
 	g_rst += 1;
 }
 
-void			ft_putstr(char *s)
+static void		ft_putstr(char *s)
 {
 	int len;
 
@@ -89,7 +88,8 @@ char			*ft_itoa(int n)
 
 	ln = (long long)n;
 	len = ft_intlen(n);
-	if (!(str = (char *)malloc(sizeof(char) * (len + 1))))
+	str = (char *)malloc(sizeof(char) * (len + 1));
+	if (!str)
 		return (0);
 	str[len--] = '\0';
 	i = 0;
@@ -115,9 +115,9 @@ static void		init_flags(t_flags *flags)
 	flags->width = 0;
 }
 
-static void		flags_check(va_list ap, const char *fmt, t_flags *flags, unsigned int *i) // [flag][width][precision]각각 함수로 나눠야 함
+static void		flags_check(va_list ap, const char *fmt, t_flags *flags, int *i) // [flag][width][precision]각각 함수로 나눠야 함
 {
-	while (fmt[*i] && !(ft_strchr(conversions, fmt[*i]))) // cspdiuxX%이 안나오면 갇힐 수 있음
+	while (fmt[*i] && !(ft_strchr(conversions, fmt[*i]))) // cspdiuxX%이 안나오면 갇힐 수 있나?
 	{
 		if (fmt[*i] == '0' && flags->dot == -1 && flags->width == 0) // 0플래그
 			flags->zero = 1;
@@ -137,7 +137,7 @@ static void		flags_check(va_list ap, const char *fmt, t_flags *flags, unsigned i
 			else
 				flags->width = (flags->width * 10) + (fmt[*i] - '0');	
 		}
-		else if (fmt[*i] == '.' || (flags->dot >= 0 && (ft_isdigit(fmt[*i]) || fmt[*i] == '*')))
+		else if (fmt[*i] == '.' || (flags->dot >= 0 && (ft_isdigit(fmt[*i]) || fmt[*i] == '*'))) // precision
 		{
 			if (fmt[*i] == '.')
 				flags->dot = 0;
@@ -148,17 +148,64 @@ static void		flags_check(va_list ap, const char *fmt, t_flags *flags, unsigned i
 		}
 		(*i)++;
 	}
+	(*i)++;
 }
 
-static void		print_d(va_list ap, t_flags *flags)
+static void		print_d(va_list ap, t_flags *flags) // precision, flags, width 처리 분리
 {
 	char *str;
-	
-	str = ft_itoa(va_arg(ap, int));
-	while (*str)
-		ft_putchar(*str++);
-	free(str);
+	char *buf;
+	char *remove_buf;
+	int len;
+	int j;
+
+	j = 0;
+	buf = ft_itoa(va_arg(ap, int));
+	len = ft_strlen(buf);
 	str = 0;
+	// precision 처리
+	if (flags->dot > len - 1 && buf[0] == '-') // 값이 음수
+	{
+		flags->dot = flags->dot - (len - 1); // -부호 뺀 길이
+		str = (char *)malloc(sizeof(char) * (flags->dot + len + 1));
+		str[flags->dot + len] = '\0';
+		str[j++] = '-';
+		while (flags->dot--)
+			str[j++] = '0';
+		remove_buf = buf;
+		while (*(buf++) != '\0')
+			str[j++] = *buf;
+		free(remove_buf);
+	}
+	else if (flags->dot > len && buf[0] != '-') // 값이 양수
+	{
+		// 양수
+		flags->dot = flags->dot - len;
+		str = (char *)malloc(sizeof(char) * (flags->dot + len + 1));
+		while (flags->dot--)
+			str[j++] = '0';
+		remove_buf = buf;
+		while (*(buf++) != '\0')
+			str[j++] = *buf;
+		free(remove_buf);
+	}
+	else // precision 없음
+		str = buf;
+	// flags & width 처리
+	len = ft_strlen(str); // precision이 포함된 값의 길이
+	if (flags->minus == 1) // -플래그
+	{
+		ft_putstr(str);
+		while (flags->width-- > len)
+			ft_putchar(' ');
+	}
+	else
+	{
+		while (flags->width-- > len)
+			ft_putchar(' ');
+		ft_putstr(str);
+	}
+	free(str);
 }
 
 static int		format_specifier(va_list ap, char c, t_flags *flags) //cspdiuxX%
@@ -167,13 +214,13 @@ static int		format_specifier(va_list ap, char c, t_flags *flags) //cspdiuxX%
 		print_d(ap, flags);
 	else
 		return (0);
-	return (1);
+	return (0);
 }
 
 static void		ft_vsprintf(va_list ap, const char *fmt)
 {
-	unsigned int	i;
-	t_flags			*flags;
+	int			i;
+	t_flags		*flags;
 	
 	flags = (t_flags *)malloc(sizeof(t_flags) * 1);
 	if (!flags)
@@ -184,7 +231,7 @@ static void		ft_vsprintf(va_list ap, const char *fmt)
 	i = 0;
 	while (fmt[i])
 	{
-		if (fmt[i++] =='%')
+		if (fmt[i] == '%')
 		{
 			init_flags(flags);
 			flags_check(ap, &fmt[i], flags, &i);
@@ -211,10 +258,14 @@ int main()
 	printf("|%08.6d|\n", -12345);
 	//printf("|%.6d|\n", -12345);
 	//printf("|%06d|\n", -12345);
+	//printf("|%-7.9d|\n", -12345);
 	
 	printf("\n");
 
 	ft_printf("|%08.6d|\n", -12345);
-	//ft_printf("|%.6d|\n", -12345);
-	//ft_printf("|%06d|\n", -12345);
+	ft_printf("|%.6d|\n", -12345);
+	ft_printf("|%06d|\n", -12345);
+	ft_printf("|%-7.9d|\n", -12345);
+
+	//system("leaks a.out > leaks_result_temp; cat leaks_result_temp | grep leaked && rm -rf leaks_result_temp");
 }
