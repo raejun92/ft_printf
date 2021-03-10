@@ -139,6 +139,7 @@ static void		flags_check(va_list ap, const char *fmt, t_flags *flags, int *i) //
 		}
 		else if (fmt[*i] == '.' || (flags->dot >= 0 && (ft_isdigit(fmt[*i]) || fmt[*i] == '*'))) // precision
 		{
+			flags->zero = 0;
 			if (fmt[*i] == '.')
 				flags->dot = 0;
 			else if (fmt[*i] == '*') // precision에 (-)플래그 못옴
@@ -176,18 +177,19 @@ static void		print_d(va_list ap, t_flags *flags) // precision, flags, width 처�
 		while (*(buf++) != '\0')
 			str[j++] = *buf;
 		free(remove_buf);
+		remove_buf = 0;
 	}
 	else if (flags->dot > len && buf[0] != '-') // 값이 양수
 	{
-		// 양수
 		flags->dot = flags->dot - len;
 		str = (char *)malloc(sizeof(char) * (flags->dot + len + 1));
 		while (flags->dot--)
 			str[j++] = '0';
 		remove_buf = buf;
-		while (*(buf++) != '\0')
-			str[j++] = *buf;
+		while (*(buf) != '\0')
+			str[j++] = *buf++;
 		free(remove_buf);
+		remove_buf = 0;
 	}
 	else // precision 없음
 		str = buf;
@@ -202,7 +204,12 @@ static void		print_d(va_list ap, t_flags *flags) // precision, flags, width 처�
 	else
 	{
 		while (flags->width-- > len)
-			ft_putchar(' ');
+		{
+			if (flags->zero == 0)
+				ft_putchar(' ');
+			else
+				ft_putchar('0');
+		}
 		ft_putstr(str);
 	}
 	free(str);
@@ -255,17 +262,20 @@ int				ft_printf(const char *fmt, ...)
 
 int main()
 {
-	printf("|%08.6d|\n", -12345);
-	//printf("|%.6d|\n", -12345);
-	//printf("|%06d|\n", -12345);
-	//printf("|%-7.9d|\n", -12345);
+	printf("|%08.6d|\n", 12345);
+	printf("|%.6d|\n", 12345);
+	printf("|%06d|\n", 12345);
+	printf("|%-7.9d|\n", 12345);
+	printf("|%09d|\n", 12345);
+
 	
 	printf("\n");
 
-	ft_printf("|%08.6d|\n", -12345);
-	ft_printf("|%.6d|\n", -12345);
-	ft_printf("|%06d|\n", -12345);
-	ft_printf("|%-7.9d|\n", -12345);
+	ft_printf("|%08.6d|\n", 12345);
+	ft_printf("|%.6d|\n", 12345);
+	ft_printf("|%06d|\n", 12345);
+	ft_printf("|%-7.9d|\n", 12345);
+	ft_printf("|%09d|\n", 12345);
 
 	//system("leaks a.out > leaks_result_temp; cat leaks_result_temp | grep leaked && rm -rf leaks_result_temp");
 }
