@@ -115,38 +115,53 @@ static void		init_flags(t_flags *flags)
 	flags->width = 0;
 }
 
+static void		is_flag(char fmt, t_flags *flags)
+{
+	if (fmt == '0' && flags->dot == -1 && flags->width == 0)
+		flags->zero = 1;
+	else if (fmt == '-' && flags->dot == -1 && flags->width == 0)
+		flags->minus = 1;
+}
+
+static void		is_width(char fmt, t_flags *flags, va_list ap)
+{
+	if (flags->dot == -1 && (ft_isdigit(fmt) || fmt == '*'))
+	{
+		if (fmt == '*') // *로 width값이 들어올 때
+		{
+			flags->width = va_arg(ap, int);
+			if (flags->width < 0) // *가 -값이면 -는 -플래그가 되고 숫자만 width가 됨
+			{
+				flags->minus = 1;
+				flags->width *= -1;
+			}
+		}
+		else
+			flags->width = (flags->width * 10) + (fmt - '0');
+	}
+}
+
+static void		is_precision(char fmt, t_flags *flags, va_list ap)
+{
+	if (fmt == '.' || (flags->dot >= 0 && (ft_isdigit(fmt) || fmt == '*')))
+	{
+		flags->zero = 0; // precision이 켜지면 0플래그는 꺼짐
+		if (fmt == '.')
+			flags->dot = 0;
+		else if (fmt == '*')
+			flags->dot = va_arg(ap, int);
+		else
+			flags->dot = (flags->dot * 10) + (fmt - '0');
+	}
+}
+
 static void		flags_check(va_list ap, const char *fmt, t_flags *flags, int *i) // [flag][width][precision]각각 함수로 나눠야 함
 {
 	while (fmt[*i] && !(ft_strchr(conversions, fmt[*i]))) // cspdiuxX%이 안나오면 갇힐 수 있나?
 	{
-		if (fmt[*i] == '0' && flags->dot == -1 && flags->width == 0) // 0플래그
-			flags->zero = 1;
-		else if (fmt[*i] == '-' && flags->dot == -1 && flags->width == 0) // -플래그
-			flags->minus = 1;
-		else if (flags->dot == -1 && (ft_isdigit(fmt[*i]) || fmt[*i] == '*')) // width
-		{
-			if (fmt[*i] == '*') 
-			{
-				flags->width = va_arg(ap, int);
-				if (flags->width < 0)
-				{
-					flags->minus = 1;
-					flags->width *= -1;
-				}
-			}
-			else
-				flags->width = (flags->width * 10) + (fmt[*i] - '0');	
-		}
-		else if (fmt[*i] == '.' || (flags->dot >= 0 && (ft_isdigit(fmt[*i]) || fmt[*i] == '*'))) // precision
-		{
-			flags->zero = 0;
-			if (fmt[*i] == '.')
-				flags->dot = 0;
-			else if (fmt[*i] == '*') // precision에 (-)플래그 못옴
-				flags->dot = va_arg(ap, int);
-			else
-				flags->dot = (flags->dot * 10) + (fmt[*i] - '0');
-		}
+		is_flag(fmt[*i], flags);
+		is_width(fmt[*i], flags, ap);
+		is_precision(fmt[*i], flags, ap);
 		(*i)++;
 	}
 	(*i)++;
@@ -262,21 +277,26 @@ int				ft_printf(const char *fmt, ...)
 
 int main()
 {
-	printf("|%08.6d|\n", 12345);
-	printf("|%.6d|\n", 12345);
-	printf("|%06d|\n", 12345);
-	printf("|%-7.9d|\n", 12345);
-	printf("|%09d|\n", 12345);
-	printf("|%0*d|\n", -9, 12345);
+	int a;
+
+ 	// printf("|%08.6d|\n", -12345);
+	a = printf("|%.6d|\n", -12345);
+	printf("a = %d\n", a);
+	// printf("|%06d|\n", -12345);
+	// printf("|%-7.9d|\n", -12345);
+	// printf("|%09d|\n", -12345);
+	// printf("|%0*d|\n", -9, -12345);
 	
 	printf("\n");
 
-	ft_printf("|%08.6d|\n", 12345);
-	ft_printf("|%.6d|\n", 12345);
-	ft_printf("|%06d|\n", 12345);
-	ft_printf("|%-7.9d|\n", 12345);
-	ft_printf("|%09d|\n", 12345);
-	printf("|%0*d|\n", -9, 12345);
+	 
+	// ft_printf("|%08.6d|\n", -12345);
+	a = ft_printf("|%.6d|\n", -12345);
+	printf("a = %d\n", a);
+	// ft_printf("|%06d|\n", -12345);
+	// ft_printf("|%-7.9d|\n", -12345);
+	// ft_printf("|%09d|\n", -12345);
+	// printf("|%0*d|\n", -9, -12345);
 
 	//system("leaks a.out > leaks_result_temp; cat leaks_result_temp | grep leaked && rm -rf leaks_result_temp");
 }
