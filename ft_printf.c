@@ -167,64 +167,104 @@ static void		flags_check(va_list ap, const char *fmt, t_flags *flags, int *i) //
 	(*i)++;
 }
 
-static void		print_d(va_list ap, t_flags *flags) // precision, flags, width 처리 분리
+// static char		*proc_precision(char *str, t_flags *flags, va_list ap)
+// {
+// 	char *buf;
+// 	char *buf_del;
+// 	int	len;
+// 	int j;
+
+// 	buf = ft_itoa(va_arg(ap, int));
+// 	len = ft_strlen(buf);
+// 	j = 0;
+// 	if (flags->dot > len - 1 && buf[0] == '-') // 값이 음수일 때
+// 	{
+// 		flags->dot = flags->dot - (len - 1); // (-)부호 뺀 값의 길이
+// 		str = (char *)malloc(sizeof(char) * (flags->dot + len + 1));
+// 		str[flags->dot + len] = '\0';
+// 		while (flags->dot--)
+// 			str[j++] = '0';
+// 		buf_del = buf;
+// 		while (*(buf) != '\0')
+// 			str[j++] = *buf++;	
+// 	}
+// 	else if (flags->dot > len && buf[0] != '-') // 값이 양수일 때
+// }
+
+static void		print_d(va_list ap, t_flags *flags) // precision, flags & width 순으로 처리
 {
 	char *str;
 	char *buf;
-	char *remove_buf;
+	char *buf_del;
 	int len;
 	int j;
 
+	str = 0;
 	j = 0;
 	buf = ft_itoa(va_arg(ap, int));
 	len = ft_strlen(buf);
-	str = 0;
 	// precision 처리
-	if (flags->dot > len - 1 && buf[0] == '-') // 값이 음수
+	if (flags->dot >= len)
 	{
-		flags->dot = flags->dot - (len - 1); // -부호 뺀 길이
-		str = (char *)malloc(sizeof(char) * (flags->dot + len + 1));
-		str[flags->dot + len] = '\0';
-		str[j++] = '-';
-		while (flags->dot--)
-			str[j++] = '0';
-		remove_buf = buf;
-		while (*(buf++) != '\0')
-			str[j++] = *buf;
-		free(remove_buf);
-		remove_buf = 0;
+		if (buf[0] == '-')
+		{
+			flags->dot = flags->dot - (len - 1); // -부호 뺀 길이
+			str = (char *)malloc(sizeof(char) * (flags->dot + len + 1));
+			str[flags->dot + len] = '\0';
+			str[j++] = '-';
+			while (flags->dot--)
+				str[j++] = '0';
+			buf_del = buf;
+			while (*(buf++) != '\0')
+				str[j++] = *buf;
+			free(buf_del);
+			buf_del = 0;
+		}
+		else
+		{
+			flags->dot = flags->dot - len;
+			str = (char *)malloc(sizeof(char) * (flags->dot + len + 1));
+			str[flags->dot + len] = '\0';
+			while (flags->dot--)
+				str[j++] = '0';
+			buf_del = buf;
+			while (*(buf) != '\0')
+				str[j++] = *buf++;	
+			free(buf_del);
+			buf_del = 0;
+		}
 	}
-	else if (flags->dot > len && buf[0] != '-') // 값이 양수
-	{
-		flags->dot = flags->dot - len;
-		str = (char *)malloc(sizeof(char) * (flags->dot + len + 1));
-		while (flags->dot--)
-			str[j++] = '0';
-		remove_buf = buf;
-		while (*(buf) != '\0')
-			str[j++] = *buf++;
-		free(remove_buf);
-		remove_buf = 0;
-	}
-	else // precision 없음
+	else
 		str = buf;
 	// flags & width 처리
 	len = ft_strlen(str); // precision이 포함된 값의 길이
-	if (flags->minus == 1) // -플래그
+	if (flags->minus == 1) // -플래그이면 0플래그가 켜져있든 말든 상관 없이 들어옴
 	{
 		ft_putstr(str);
 		while (flags->width-- > len)
 			ft_putchar(' ');
 	}
-	else
+	else if (flags->zero == 1 && flags->minus == 0) // 0플래그일 때
+	{
+		if (str[0] == '-') // 값이 음수일 때 
+		{
+		
+			ft_putchar(str[0]);
+			while (flags->width-- > len)
+				ft_putchar('0');
+			ft_putstr((str + 1));
+		}
+		else // 값이 양수일 때
+		{
+			while (flags->width-- > len)
+				ft_putchar('0');
+			ft_putstr((str));
+		}
+	}
+	else // 플래그가 없을 때
 	{
 		while (flags->width-- > len)
-		{
-			if (flags->zero == 0)
-				ft_putchar(' ');
-			else
-				ft_putchar('0');
-		}
+			ft_putchar(' ');
 		ft_putstr(str);
 	}
 	free(str);
@@ -269,6 +309,7 @@ static void		ft_vsprintf(va_list ap, const char *fmt)
 int				ft_printf(const char *fmt, ...)
 {
 	va_list ap;
+	g_rst = 0;
 	va_start(ap, fmt);
 	ft_vsprintf(ap, fmt);
 	va_end(ap);
@@ -277,26 +318,23 @@ int				ft_printf(const char *fmt, ...)
 
 int main()
 {
-	int a;
-
- 	// printf("|%08.6d|\n", -12345);
-	a = printf("|%.6d|\n", -12345);
-	printf("a = %d\n", a);
-	// printf("|%06d|\n", -12345);
-	// printf("|%-7.9d|\n", -12345);
-	// printf("|%09d|\n", -12345);
-	// printf("|%0*d|\n", -9, -12345);
+	printf("|%08.6d|\n", 12345);
+	printf("|%8d|\n", -12345);
+	printf("|%.6d|\n", -12345);
+	printf("|%06d|\n", -12345);
+	printf("|%-7.9d|\n", -12345);
+	printf("|%0*d|\n", -9, -12345);
+	printf("|%09d|\n", -12345);
 	
 	printf("\n");
 
-	 
-	// ft_printf("|%08.6d|\n", -12345);
-	a = ft_printf("|%.6d|\n", -12345);
-	printf("a = %d\n", a);
-	// ft_printf("|%06d|\n", -12345);
-	// ft_printf("|%-7.9d|\n", -12345);
-	// ft_printf("|%09d|\n", -12345);
-	// printf("|%0*d|\n", -9, -12345);
+	ft_printf("|%08.6d|\n", 12345);
+	ft_printf("|%8d|\n", -12345);
+	ft_printf("|%.6d|\n", -12345);
+	ft_printf("|%06d|\n", -12345);
+	ft_printf("|%-7.9d|\n", -12345);
+	ft_printf("|%0*d|\n", -9, -12345);
+	ft_printf("|%09d|\n", -12345);
 
 	//system("leaks a.out > leaks_result_temp; cat leaks_result_temp | grep leaked && rm -rf leaks_result_temp");
 }
