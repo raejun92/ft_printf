@@ -18,6 +18,13 @@ void		ft_putchar(char c)
 	g_rst += 1;
 }
 
+void		ft_putchar_base(char c, int len)
+{
+	g_rst += len;
+	while (len--)
+		write(1, &c, 1);
+}
+
 void		ft_putstr(char *s)
 {
 	int len;
@@ -25,6 +32,14 @@ void		ft_putstr(char *s)
 	if (!s)
 		return ;
 	len = ft_strlen(s);
+	write(1, s, len);
+	g_rst += len;
+}
+
+void		ft_putstr_base(char *s, int len)
+{
+	if (!s)
+		return ;
 	write(1, s, len);
 	g_rst += len;
 }
@@ -216,6 +231,29 @@ void		print_c(char c, t_flags *flags)
 	}
 }
 
+void		print_s(char *s, t_flags *flags)
+{
+	int s_len;
+
+	if (!s) // s에 NULL 또는 0이 들어왔을 때
+		s = "(null)";
+	s_len = ft_strlen(s);
+	if (s_len > flags->dot && flags->dot >= 0) // precision이 0이상이고 값의 길이보다 작을 때
+		s_len = flags->dot; // precision이 0일 때 아무것도 출력 안함
+	if (flags->minus == 1)
+	{
+		ft_putstr_base(s, s_len);
+		if (flags->width > s_len)
+			ft_putchar_base(' ', (flags->width - s_len));
+	}
+	else
+	{
+		if (flags->width > s_len)
+			ft_putchar_base(' ', (flags->width - s_len));
+		ft_putstr_base(s, s_len);
+	}
+}
+
 void		print_d(va_list ap, t_flags *flags) // precision, flags & width 순으로 처리
 {
 	char *str;
@@ -264,6 +302,8 @@ void		format_specifier(va_list ap, char c, t_flags *flags) //cspdiuxX%
 		print_d(ap, flags);
 	else if (c == 'c')
 		print_c(va_arg(ap, int), flags);
+	else if (c == 's')
+		print_s(va_arg(ap, char *), flags);
 	else
 		return ;
 }
@@ -307,30 +347,12 @@ int				ft_printf(const char *fmt, ...)
 
 // int main()
 // {
-
-// 	printf("-->|%-4c|<--\n", 'y');
-// 	ft_printf("-->|%-4c|<--\n", 'y');
-
-// 	// printf("|%08.6d|\n", 12345);
-// 	// printf("|%8d|\n", -12345);
-// 	// printf("|%.6d|\n", -12345);
-// 	// printf("|%06d|\n", -12345);
-// 	// printf("|%-7.9d|\n", -12345);
-// 	// printf("|%0*d|\n", -9, -12345);
-// 	// printf("|%09d|\n", -12345);
-// 	// printf("|%0.d|\n", 0);
-// 	// printf("|%0.3d|\n", 0);
-// 	// printf("\n");
-// 	// ft_printf("|%08.6d|\n", 12345);
-// 	// ft_printf("|%8d|\n", -12345);
-// 	// ft_printf("|%.6d|\n", -12345);
-// 	// ft_printf("|%06d|\n", -12345);
-// 	// ft_printf("|%-7.9d|\n", -12345);
-// 	// ft_printf("|%0*d|\n", -9, -12345);
-// 	// ft_printf("|%09d|\n", -12345);
-// 	// ft_printf("|%0.d|\n", 0);
-// 	// ft_printf("|%0.3d|\n", 0);
-
-	
-// 	system("leaks a.out > leaks_result_temp; cat leaks_result_temp | grep leaked && rm -rf leaks_result_temp");
+// 	char *s = 0;
+// 	int a;
+// 	a = printf("-->|%-16.s|<--\n", s);
+// 	printf("%d\n", a);
+// 	printf("\n");
+// 	ft_printf("-->|%-16.s|<--\n", s);
+// 	printf("%d\n", a);
+// 	// system("leaks a.out > leaks_result_temp; cat leaks_result_temp | grep leaked && rm -rf leaks_result_temp");
 // }
