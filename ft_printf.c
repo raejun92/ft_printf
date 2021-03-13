@@ -1,19 +1,4 @@
-#include <stdarg.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-
-#define conversions "cspdiuxX%"
-
-static int g_rst;
-
-typedef struct	s_flags
-{
-	int	minus;
-	int dot;
-	int zero;
-	int width;
-}				t_flags;
+#include "ft_printf.h"
 
 size_t	ft_strlen(const char *s)
 {
@@ -67,7 +52,7 @@ int		ft_strchr(const char *s, int c) // 혹시 주소값으로 반환하면 if�
 	return (0);
 }
 
-static int		ft_intlen(int n)
+int		ft_intlen(int n)
 {
 	int i;
 
@@ -160,14 +145,12 @@ void		is_precision(char fmt, t_flags *flags, va_list ap)
 
 void		flags_check(va_list ap, const char *fmt, t_flags *flags, int *i) // [flag][width][precision]각각 함수로 나눠야 함
 {
-	while (fmt[*i] && !(ft_strchr(conversions, fmt[*i]))) // cspdiuxX%이 안나오면 갇힐 수 있나?
+	while (fmt[++(*i)] && !(ft_strchr(conversions, fmt[*i]))) // cspdiuxX%이 안나오면 갇힐 수 있나?
 	{
 		is_flag(fmt[*i], flags);
 		is_width(fmt[*i], flags, ap);
 		is_precision(fmt[*i], flags, ap);
-		(*i)++;
 	}
-	(*i)++;
 }
 
 char		*proc_precision(char *str, t_flags *flags, int value)
@@ -217,6 +200,22 @@ char		*proc_precision(char *str, t_flags *flags, int value)
 	return (str);
 }
 
+void		print_c(char c, t_flags *flags)
+{
+	if (flags->minus == 1)
+	{
+		ft_putchar(c);
+		while (--(flags->width) > 0)
+			ft_putchar(' ');
+	}
+	else
+	{
+		while (--(flags->width) > 0)
+			ft_putchar(' ');
+		ft_putchar(c);
+	}
+}
+
 void		print_d(va_list ap, t_flags *flags) // precision, flags & width 순으로 처리
 {
 	char *str;
@@ -263,11 +262,13 @@ void		format_specifier(va_list ap, char c, t_flags *flags) //cspdiuxX%
 {
 	if (c == 'd')
 		print_d(ap, flags);
+	else if (c == 'c')
+		print_c(va_arg(ap, int), flags);
 	else
 		return ;
 }
 
-static void		ft_vsprintf(va_list ap, const char *fmt)
+void		ft_vsprintf(va_list ap, const char *fmt)
 {
 	int			i;
 	t_flags		*flags;
@@ -284,7 +285,7 @@ static void		ft_vsprintf(va_list ap, const char *fmt)
 		if (fmt[i] == '%')
 		{
 			init_flags(flags);
-			flags_check(ap, &fmt[i], flags, &i);
+			flags_check(ap, fmt, flags, &i);
 			format_specifier(ap, fmt[i], flags);
 		}
 		else
@@ -304,29 +305,32 @@ int				ft_printf(const char *fmt, ...)
 	return (g_rst);
 }
 
-int main()
-{
-	printf("|%08.6d|\n", 12345);
-	printf("|%8d|\n", -12345);
-	printf("|%.6d|\n", -12345);
-	printf("|%06d|\n", -12345);
-	printf("|%-7.9d|\n", -12345);
-	printf("|%0*d|\n", -9, -12345);
-	printf("|%09d|\n", -12345);
-	printf("|%0.d|\n", 0);
-	printf("|%0.3d|\n", 0);
+// int main()
+// {
 
-	printf("\n");
+// 	printf("-->|%-4c|<--\n", 'y');
+// 	ft_printf("-->|%-4c|<--\n", 'y');
 
-	ft_printf("|%08.6d|\n", 12345);
-	ft_printf("|%8d|\n", -12345);
-	ft_printf("|%.6d|\n", -12345);
-	ft_printf("|%06d|\n", -12345);
-	ft_printf("|%-7.9d|\n", -12345);
-	ft_printf("|%0*d|\n", -9, -12345);
-	ft_printf("|%09d|\n", -12345);
-	ft_printf("|%0.d|\n", 0);
-	ft_printf("|%0.3d|\n", 0);
+// 	// printf("|%08.6d|\n", 12345);
+// 	// printf("|%8d|\n", -12345);
+// 	// printf("|%.6d|\n", -12345);
+// 	// printf("|%06d|\n", -12345);
+// 	// printf("|%-7.9d|\n", -12345);
+// 	// printf("|%0*d|\n", -9, -12345);
+// 	// printf("|%09d|\n", -12345);
+// 	// printf("|%0.d|\n", 0);
+// 	// printf("|%0.3d|\n", 0);
+// 	// printf("\n");
+// 	// ft_printf("|%08.6d|\n", 12345);
+// 	// ft_printf("|%8d|\n", -12345);
+// 	// ft_printf("|%.6d|\n", -12345);
+// 	// ft_printf("|%06d|\n", -12345);
+// 	// ft_printf("|%-7.9d|\n", -12345);
+// 	// ft_printf("|%0*d|\n", -9, -12345);
+// 	// ft_printf("|%09d|\n", -12345);
+// 	// ft_printf("|%0.d|\n", 0);
+// 	// ft_printf("|%0.3d|\n", 0);
 
-	//system("leaks a.out > leaks_result_temp; cat leaks_result_temp | grep leaked && rm -rf leaks_result_temp");
-}
+	
+// 	system("leaks a.out > leaks_result_temp; cat leaks_result_temp | grep leaked && rm -rf leaks_result_temp");
+// }
