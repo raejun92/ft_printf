@@ -123,7 +123,11 @@ void		is_flag(char fmt, t_flags *flags)
 	if (fmt == '0' && flags->dot == -1 && flags->width == 0)
 		flags->zero = 1;
 	else if (fmt == '-' && flags->dot == -1 && flags->width == 0)
+	{
+		if (flags->zero == 1)
+			flags->zero = 0;
 		flags->minus = 1;
+	}
 }
 
 void		is_width(char fmt, t_flags *flags, va_list ap)
@@ -148,7 +152,6 @@ void		is_precision(char fmt, t_flags *flags, va_list ap)
 {
 	if (fmt == '.' || (flags->dot >= 0 && (ft_isdigit(fmt) || fmt == '*')))
 	{
-		flags->zero = 0; // precision이 켜지면 0플래그는 꺼짐
 		if (fmt == '.')
 			flags->dot = 0;
 		else if (fmt == '*')
@@ -166,53 +169,10 @@ void		flags_check(va_list ap, const char *fmt, t_flags *flags, int *i) // [flag]
 		is_width(fmt[*i], flags, ap);
 		is_precision(fmt[*i], flags, ap);
 	}
-}
-
-char		*proc_precision(char *str, t_flags *flags, int value)
-{
-	char *buf;
-	char *buf_del;
-	int	len;
-	int j;
-
-	buf = ft_itoa(value);
-	len = ft_strlen(buf);
-	j = 0;
-	if (flags->dot == 0 && value == 0)
-		str = 0;
-	else if (flags->dot >= len)
-	{
-		if (buf[0] == '-')
-		{
-			flags->dot = flags->dot - (len - 1); // -부호 뺀 길이
-			str = (char *)malloc(sizeof(char) * (flags->dot + len + 1));
-			str[flags->dot + len] = '\0';
-			str[j++] = '-';
-			while (flags->dot--)
-				str[j++] = '0';
-			buf_del = buf;
-			while (*(buf++) != '\0')
-				str[j++] = *buf;
-			free(buf_del);
-			buf_del = 0;
-		}
-		else
-		{
-			flags->dot = flags->dot - len;
-			str = (char *)malloc(sizeof(char) * (flags->dot + len + 1));
-			str[flags->dot + len] = '\0';
-			while (flags->dot--)
-				str[j++] = '0';
-			buf_del = buf;
-			while (*(buf) != '\0')
-				str[j++] = *buf++;	
-			free(buf_del);
-			buf_del = 0;
-		}
-	}
-	else
-		str = buf;
-	return (str);
+	if (flags->dot >= 0 && flags->zero == 1) // precision이 존재하면서 zero가 켜져 있으면 꺼줌
+		flags->zero = 0;
+	if (flags->minus == 1 && flags->zero == 1) // (-)플래그와 (0)플래그가 켜져 있으면 (0)플래그 꺼줌
+		flags->zero = 0;
 }
 
 void		print_c(char c, t_flags *flags)
@@ -254,52 +214,93 @@ void		print_s(char *s, t_flags *flags)
 	}
 }
 
-void		print_d(va_list ap, t_flags *flags) // precision, flags & width 순으로 처리
+int			zero_number(int num, t_flags *flags) // 0플래그와 precision일 때 0패딩 발생
 {
-	char *str;
-	int len;
+	char *s_num;
+	int zero_num;
+	int num_len;
 
-	str = 0;
-	// precision 처리
-	str = proc_precision(str, flags, va_arg(ap, int)); 
-	// flags & width 처리
-	len = ft_strlen(str); // precision이 포함된 값의 길이
-	if (flags->minus == 1) // -플래그이면 0플래그가 켜져있든 말든 상관 없이 들어옴
+	zero_num = 0;
+	s_num = ft_itoa(num);
+	num_len = ft_strlen(s_num);
+	if (flags->zero == 1 && flags->width > num_len) // 0플래그인 경우(-포함한 길이)
+		zero_num = flags->width - num_len;
+	if (num <= 0) // -부호뺌, 값이 0일 땐 길이 0
+		num_len--;
+	if (flags->dot > 0 && flags->dot > num_len) // precision인 경우(-뺀 길이)
+		zero_num = flags->dot - num_len;
+	free(s_num);
+	s_num = 0;
+	return (zero_num);
+}
+
+int			blank_number(int num, t_flags *flags, int zero_num)
+{
+	int width_num;
+	char *s_num;
+	int num_len;
+
+	width_num = 0;
+	s_num = ft_itoa(num);
+	num_len = ft_strlen(s_num);
+	if (num == 0 && flags->dot >= 0) // 값이 0일 때 precision이 존재하면 값인 0이 출력 되지 않음
+		num_len--;
+	if (flags->width > (num_len + zero_num))
+		width_num = flags->width - (num_len + zero_num);
+	free(s_num);
+	s_num = 0;
+	return (width_num);
+}
+
+void		blank_output(int width_num)
+{
+	ft_putchar_base(' ', width_num);
+}
+
+void		number_output(int num, int zero_num, t_flags *flags)
+{
+	char *s_num;
+
+	if (flags->dot == 0 && num == 0) // 값이 0이고 precision이 0이면 아무것도 출력 안함
+		return ;
+	s_num = ft_itoa(num);
+	if (num < 0)
+		ft_putchar('-');
+	ft_putchar_base('0', zero_num);
+	if (num != 0 || flags->dot < 0) // 값이 0일 때 precision이 존재하면 값인 0이 출력 되지 않음
 	{
-		ft_putstr(str);
-		while (flags->width-- > len)
-			ft_putchar(' ');
+		if (num < 0)
+			ft_putstr(s_num + 1);
+		else
+			ft_putstr(s_num);
 	}
-	else if (flags->zero == 1 && flags->minus == 0) // 0플래그일 때
+	free(s_num);
+	s_num = 0;	
+}
+
+void		print_d(int num, t_flags *flags)
+{
+	int zero_num;
+	int width_num;
+
+	zero_num = zero_number(num, flags); // 0 출력 개수, 0flag or precision인 경우
+	width_num = blank_number(num, flags, zero_num); // 공백 출력 개수
+	if (flags->minus == 1) // 왼쪽 정렬
 	{
-		if (str[0] == '-') // 값이 음수일 때 
-		{
-		
-			ft_putchar(str[0]);
-			while (flags->width-- > len)
-				ft_putchar('0');
-			ft_putstr((str + 1));
-		}
-		else // 값이 양수일 때
-		{
-			while (flags->width-- > len)
-				ft_putchar('0');
-			ft_putstr((str));
-		}
+		number_output(num, zero_num, flags); // 문자 출력 
+		blank_output(width_num); // 공백 출력
 	}
-	else // 플래그가 없을 때
+	else
 	{
-		while (flags->width-- > len)
-			ft_putchar(' ');
-		ft_putstr(str);
+		blank_output(width_num); // 공백 출력
+		number_output(num, zero_num, flags); // 문자 출력
 	}
-	free(str);
 }
 
 void		format_specifier(va_list ap, char c, t_flags *flags) //cspdiuxX%
 {
 	if (c == 'd')
-		print_d(ap, flags);
+		print_d(va_arg(ap, int), flags);
 	else if (c == 'c')
 		print_c(va_arg(ap, int), flags);
 	else if (c == 's')
@@ -347,12 +348,14 @@ int				ft_printf(const char *fmt, ...)
 
 // int main()
 // {
-// 	char *s = 0;
-// 	int a;
-// 	a = printf("-->|%-16.s|<--\n", s);
-// 	printf("%d\n", a);
+// 	int d = -12;
+
+// 	printf("-->|%0*d|<--\n", 4, d);
+// 	printf("%04d\n", -12);
+// 	printf("%04d\n", 12);
+// 	printf("%4d\n", -12);
+// 	printf("%4d\n", 12);
 // 	printf("\n");
-// 	ft_printf("-->|%-16.s|<--\n", s);
-// 	printf("%d\n", a);
+// 	ft_printf("-->|%0*d|<--\n", 4, d);
 // 	// system("leaks a.out > leaks_result_temp; cat leaks_result_temp | grep leaked && rm -rf leaks_result_temp");
 // }
