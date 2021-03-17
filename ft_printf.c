@@ -67,7 +67,7 @@ int		ft_strchr(const char *s, int c) // 혹시 주소값으로 반환하면 if�
 	return (0);
 }
 
-int		ft_intlen(int n)
+int		ft_intlen(long long n, int base)
 {
 	int i;
 
@@ -76,7 +76,7 @@ int		ft_intlen(int n)
 		i = i + 1;
 	while (n != 0)
 	{
-		n = n / 10;
+		n = n / base;
 		i++;
 	}
 	return (i);
@@ -90,7 +90,7 @@ char			*ft_itoa(int n)
 	long long	ln;
 
 	ln = (long long)n;
-	len = ft_intlen(n);
+	len = ft_intlen(ln, 10);
 	str = (char *)malloc(sizeof(char) * (len + 1));
 	if (!str)
 		return (0);
@@ -103,9 +103,32 @@ char			*ft_itoa(int n)
 	}
 	while (i <= len)
 	{
-		str[len] = (ln % 10) + '0';
+		str[len--] = (ln % 10) + '0';
 		ln = ln / 10;
-		len--;
+	}
+	return (str);
+}
+
+char		*ft_ltoa(long long n)
+{
+	char	*str;
+	char	*base;
+	int		len;
+	int		i;
+
+	base = "0123456789abcdef";
+	if (n < 0)
+		return (0);
+	len = ft_intlen(n, 16);
+	str = (char *)malloc(sizeof(char) * len + 1);
+	if (!str)
+		return (0);
+	str[len--] = '\0';
+	i = 0;
+	while (i <= len)
+	{
+		str[len--] = base[n % 16];
+		n = n / 16;
 	}
 	return (str);
 }
@@ -169,7 +192,7 @@ void		flags_check(va_list ap, const char *fmt, t_flags *flags, int *i) // [flag]
 		is_width(fmt[*i], flags, ap);
 		is_precision(fmt[*i], flags, ap);
 	}
-	if (flags->dot >= 0 && flags->zero == 1) // precision이 존재하면서 zero가 켜져 있으면 꺼줌
+	if (flags->dot >= 0 && flags->zero == 1) // precision이 존재하면서 zero가 켜져 있으면 (0)플래그 꺼줌
 		flags->zero = 0;
 	if (flags->minus == 1 && flags->zero == 1) // (-)플래그와 (0)플래그가 켜져 있으면 (0)플래그 꺼줌
 		flags->zero = 0;
@@ -214,7 +237,7 @@ void		print_s(char *s, t_flags *flags)
 	}
 }
 
-int			zero_number(int num, t_flags *flags) // 0플래그와 precision일 때 0패딩 발생
+int			zero_number(int num, t_flags *flags) // 0플래그 또는 precision일 때 0패딩 발생
 {
 	char *s_num;
 	int zero_num;
@@ -243,7 +266,7 @@ int			blank_number(int num, t_flags *flags, int zero_num)
 	width_num = 0;
 	s_num = ft_itoa(num);
 	num_len = ft_strlen(s_num);
-	if (num == 0 && flags->dot >= 0) // 값이 0일 때 precision이 존재하면 값인 0이 출력 되지 않음
+	if (num == 0 && flags->dot >= 0) // 값이 0일 때 precision이 존재하면 값인 0이 출력 되지 않고 공백을 출력함
 		num_len--;
 	if (flags->width > (num_len + zero_num))
 		width_num = flags->width - (num_len + zero_num);
@@ -274,7 +297,8 @@ void		number_output(int num, int zero_num, t_flags *flags)
 		else
 			ft_putstr(s_num);
 	}
-	free(s_num);
+	if (s_num)
+		free(s_num);
 	s_num = 0;	
 }
 
@@ -297,14 +321,45 @@ void		print_d(int num, t_flags *flags)
 	}
 }
 
+void		print_p(long long pointer, t_flags *flags) // long long을 쓰는 이유는 원래 포인터로 선언된 변수는 long long으로 선언되어 있음
+{
+	char *p_str;
+	char *zero_x;
+	int p_len;
+	
+	zero_x = "0x";
+	p_str = ft_ltoa(pointer);
+	p_len = ft_strlen(p_str) + 2;
+	if (flags->dot == 0 && pointer == 0) // ("%.p", NULL) -> |0x |   ("%p", NULL) -> |0x0|
+		p_len--;
+	if (flags->minus == 1)
+	{
+		ft_putstr(zero_x);
+		if (flags->dot != 0 || pointer != 0)
+			ft_putstr(p_str);
+		if (flags->width > p_len)
+			ft_putchar_base(' ', flags->width - p_len);
+	}
+	else
+	{
+		if (flags->width > p_len)
+			ft_putchar_base(' ', flags->width - p_len);
+		ft_putstr(zero_x);
+		if (flags->dot != 0 || pointer != 0)
+			ft_putstr(p_str);
+	}
+}
+
 void		format_specifier(va_list ap, char c, t_flags *flags) //cspdiuxX%
 {
-	if (c == 'd')
+	if (c == 'd' || c == 'i')
 		print_d(va_arg(ap, int), flags);
 	else if (c == 'c')
 		print_c(va_arg(ap, int), flags);
 	else if (c == 's')
 		print_s(va_arg(ap, char *), flags);
+	else if ( c== 'p')
+		print_p(va_arg(ap, long long), flags);
 	else
 		return ;
 }
@@ -348,14 +403,18 @@ int				ft_printf(const char *fmt, ...)
 
 // int main()
 // {
-// 	int d = -12;
-
-// 	printf("-->|%0*d|<--\n", 4, d);
-// 	printf("%04d\n", -12);
-// 	printf("%04d\n", 12);
-// 	printf("%4d\n", -12);
-// 	printf("%4d\n", 12);
+// 	char *p = NULL;
+	
+// 	printf("-->|%-3.p|<--\n", p);	
+// 	printf("-->|%-3p|<--\n", p);	
+//  	printf("-->|%-16p|<--\n", p);	
+// 	printf("-->|%-*.p|<--\n", 4, p);
+// 	printf("-->|%-*.p|<--\n", -15, p);	
 // 	printf("\n");
-// 	ft_printf("-->|%0*d|<--\n", 4, d);
+// 	ft_printf("-->|%-3.p|<--\n", p);	
+// 	ft_printf("-->|%-3p|<--\n", p);	
+//  	ft_printf("-->|%-16p|<--\n", p);	
+// 	ft_printf("-->|%-*.p|<--\n", 4, p);
+// 	ft_printf("-->|%-*.p|<--\n", -15, p);	
 // 	// system("leaks a.out > leaks_result_temp; cat leaks_result_temp | grep leaked && rm -rf leaks_result_temp");
 // }
