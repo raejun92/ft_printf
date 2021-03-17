@@ -192,8 +192,6 @@ void		flags_check(va_list ap, const char *fmt, t_flags *flags, int *i) // [flag]
 		is_width(fmt[*i], flags, ap);
 		is_precision(fmt[*i], flags, ap);
 	}
-	if (flags->dot >= 0 && flags->zero == 1) // precision이 존재하면서 zero가 켜져 있으면 (0)플래그 꺼줌
-		flags->zero = 0;
 	if (flags->minus == 1 && flags->zero == 1) // (-)플래그와 (0)플래그가 켜져 있으면 (0)플래그 꺼줌
 		flags->zero = 0;
 }
@@ -305,18 +303,20 @@ void		number_output(int num, int zero_num, t_flags *flags)
 void		print_d(int num, t_flags *flags)
 {
 	int zero_num;
-	int width_num;
+	int blank_num;
 
+	if (flags->dot >= 0 && flags->zero == 1) // precision이 존재하면서 zero가 켜져 있으면 (0)플래그 꺼줌
+		flags->zero = 0;
 	zero_num = zero_number(num, flags); // 0 출력 개수, 0flag or precision인 경우
-	width_num = blank_number(num, flags, zero_num); // 공백 출력 개수
+	blank_num = blank_number(num, flags, zero_num); // 공백 출력 개수
 	if (flags->minus == 1) // 왼쪽 정렬
 	{
 		number_output(num, zero_num, flags); // 문자 출력 
-		blank_output(width_num); // 공백 출력
+		blank_output(blank_num); // 공백 출력
 	}
 	else
 	{
-		blank_output(width_num); // 공백 출력
+		blank_output(blank_num); // 공백 출력
 		number_output(num, zero_num, flags); // 문자 출력
 	}
 }
@@ -350,6 +350,31 @@ void		print_p(long long pointer, t_flags *flags) // long long을 쓰는 이유�
 	}
 }
 
+void		print_percent(t_flags *flags)
+{
+	int width_num;
+
+	width_num = flags->width - 1;
+	if (width_num < 0)
+		width_num = 0;
+	if (flags->minus == 1)
+	{
+		if (flags->zero == 1)
+			ft_putchar_base('0', width_num);
+		ft_putchar('%');
+		if (flags->zero == 0)
+			ft_putchar_base(' ', width_num);
+	}
+	else
+	{
+		if (flags->zero == 1)
+			ft_putchar_base('0', width_num);
+		else
+			ft_putchar_base(' ', width_num);
+		ft_putchar('%');
+	}
+}
+
 void		format_specifier(va_list ap, char c, t_flags *flags) //cspdiuxX%
 {
 	if (c == 'd' || c == 'i')
@@ -358,8 +383,10 @@ void		format_specifier(va_list ap, char c, t_flags *flags) //cspdiuxX%
 		print_c(va_arg(ap, int), flags);
 	else if (c == 's')
 		print_s(va_arg(ap, char *), flags);
-	else if ( c== 'p')
+	else if (c == 'p')
 		print_p(va_arg(ap, long long), flags);
+	else if (c == '%')
+		print_percent(flags);
 	else
 		return ;
 }
@@ -402,19 +429,11 @@ int				ft_printf(const char *fmt, ...)
 }
 
 // int main()
-// {
-// 	char *p = NULL;
+// {	
+// 	printf("-->|%0*.%|<--\n", 2);	
 	
-// 	printf("-->|%-3.p|<--\n", p);	
-// 	printf("-->|%-3p|<--\n", p);	
-//  	printf("-->|%-16p|<--\n", p);	
-// 	printf("-->|%-*.p|<--\n", 4, p);
-// 	printf("-->|%-*.p|<--\n", -15, p);	
 // 	printf("\n");
-// 	ft_printf("-->|%-3.p|<--\n", p);	
-// 	ft_printf("-->|%-3p|<--\n", p);	
-//  	ft_printf("-->|%-16p|<--\n", p);	
-// 	ft_printf("-->|%-*.p|<--\n", 4, p);
-// 	ft_printf("-->|%-*.p|<--\n", -15, p);	
+// 	ft_printf("-->|%0*.%|<--\n", 2);	
+
 // 	// system("leaks a.out > leaks_result_temp; cat leaks_result_temp | grep leaked && rm -rf leaks_result_temp");
 // }

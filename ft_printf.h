@@ -42,6 +42,7 @@ void		blank_output(int width_num);
 void		number_output(int num, int zero_num, t_flags *flags);
 void		print_d(int num, t_flags *flags);
 void		print_p(long long pointer, t_flags *flags);
+void		print_percent(t_flags *flags);
 void		format_specifier(va_list ap, char c, t_flags *flags);
 void		ft_vsprintf(va_list ap, const char *fmt);
 int				ft_printf(const char *fmt, ...);
