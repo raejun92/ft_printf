@@ -133,7 +133,7 @@ char		*ft_ltoa(long long n)
 	return (str);
 }
 
-char		*ft_uitoa_base(unsigned int n, char *base)
+char		*ft_uitoa_base(unsigned int n, char *base, int base_num)
 {
 	unsigned int n_tmp;
 	int len;
@@ -145,7 +145,7 @@ char		*ft_uitoa_base(unsigned int n, char *base)
 		len++;
 	while (n_tmp != 0)
 	{
-		n_tmp = n_tmp / 16;
+		n_tmp = n_tmp / base_num;
 		len++;
 	}
 	str = (char *)malloc(sizeof(char) * (len + 1));
@@ -154,8 +154,8 @@ char		*ft_uitoa_base(unsigned int n, char *base)
 	str[len--] = '\0';
 	while (len >= 0)
 	{
-		str[len--] = base[n % 16];
-		n = n / 16;
+		str[len--] = base[n % base_num];
+		n = n / base_num;
 	}
 	return (str);
 }
@@ -452,7 +452,36 @@ void		print_x(unsigned int num, t_flags *flags, char c)
 	int blank_num;
 
 	base = is_x_or_X(c);
-	s_num = ft_uitoa_base(num, base);
+	s_num = ft_uitoa_base(num, base, 16);
+	zero_num = zero_number_ui(s_num, flags);
+	blank_num = blank_number_ui(s_num, flags, zero_num, num);
+	if (flags->minus == 1)
+	{
+		ft_putchar_base('0', zero_num);
+		if (num != 0 || flags->dot != 0)
+			ft_putstr(s_num);
+		ft_putchar_base(' ', blank_num);
+	}
+	else
+	{
+		ft_putchar_base(' ', blank_num);
+		ft_putchar_base('0', zero_num);
+		if (num != 0 || flags->dot != 0)
+			ft_putstr(s_num);
+	}
+	free(s_num);
+	s_num = 0;
+}
+
+void		print_u(unsigned int num, t_flags * flags)
+{
+	char *base;
+	char *s_num;
+	int zero_num;
+	int blank_num;
+
+	base= "0123456789";
+	s_num = ft_uitoa_base(num, base, 10);
 	zero_num = zero_number_ui(s_num, flags);
 	blank_num = blank_number_ui(s_num, flags, zero_num, num);
 	if (flags->minus == 1)
@@ -487,6 +516,8 @@ void		format_specifier(va_list ap, char c, t_flags *flags) //cspdiuxX%
 		print_percent(flags);
 	else if (c == 'x' || c == 'X')
 		print_x(va_arg(ap, unsigned int), flags, c);
+	else if (c == 'u')
+		print_u(va_arg(ap, unsigned int), flags);
 	else
 		return ;
 }
