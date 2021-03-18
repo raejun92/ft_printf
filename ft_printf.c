@@ -409,6 +409,8 @@ int			zero_number_ui(char *s_num, t_flags *flags)
 
 	zero_num = 0;
 	num_len = ft_strlen(s_num);
+	if (flags->dot >= 0 && flags->zero == 1)
+		flags->zero = 0;
 	if (flags->dot > 0 && flags->dot > num_len)
 		zero_num = flags->dot - num_len;
 	if (flags->zero == 1 && flags->width > num_len)
@@ -432,6 +434,16 @@ int			blank_number_ui(char *s_num, t_flags *flags, int zero_num, unsigned int nu
 	return (blank_num);
 }
 
+char		*is_x_or_X(char c)
+{
+	char *base;
+	if (c == 'x')
+		base = "0123456789abcdef";
+	else
+		base = "0123456789ABCDEF";
+	return (base);
+}
+
 void		print_x(unsigned int num, t_flags *flags, char c)
 {
 	char *base;
@@ -439,13 +451,8 @@ void		print_x(unsigned int num, t_flags *flags, char c)
 	int zero_num;
 	int blank_num;
 
-	if (c == 'x')
-		base = "0123456789abcdef";
-	else
-		base = "0123456789ABCDEF";
+	base = is_x_or_X(c);
 	s_num = ft_uitoa_base(num, base);
-	if (flags->dot >= 0 && flags->zero == 1)
-		flags->zero = 0;
 	zero_num = zero_number_ui(s_num, flags);
 	blank_num = blank_number_ui(s_num, flags, zero_num, num);
 	if (flags->minus == 1)
