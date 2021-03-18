@@ -1,7 +1,6 @@
 NAME = libftprintf.a
 
 OBJS = $(FILES:.c=.o)
-B_OBJS = $(BONUS:.c=.o)
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror
 FILES = ft_printf.c

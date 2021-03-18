@@ -133,6 +133,33 @@ char		*ft_ltoa(long long n)
 	return (str);
 }
 
+char		*ft_uitoa_base(unsigned int n, char *base)
+{
+	unsigned int n_tmp;
+	int len;
+	char *str;
+
+	n_tmp = n;
+	len = 0;
+	if (n_tmp == 0)
+		len++;
+	while (n_tmp != 0)
+	{
+		n_tmp = n_tmp / 16;
+		len++;
+	}
+	str = (char *)malloc(sizeof(char) * (len + 1));
+	if (!str)
+		return (0);
+	str[len--] = '\0';
+	while (len >= 0)
+	{
+		str[len--] = base[n % 16];
+		n = n / 16;
+	}
+	return (str);
+}
+
 void		init_flags(t_flags *flags)
 {
 	flags->minus = 0;
@@ -375,6 +402,70 @@ void		print_percent(t_flags *flags)
 	}
 }
 
+int			zero_number_ui(char *s_num, t_flags *flags)
+{
+	int num_len;
+	int zero_num;
+
+	zero_num = 0;
+	num_len = ft_strlen(s_num);
+	if (flags->dot > 0 && flags->dot > num_len)
+		zero_num = flags->dot - num_len;
+	if (flags->zero == 1 && flags->width > num_len)
+		zero_num = flags->width - num_len;
+	return (zero_num);
+}
+
+int			blank_number_ui(char *s_num, t_flags *flags, int zero_num, unsigned int num)
+{
+	int num_len;
+	int blank_num;
+
+	blank_num = 0;
+	num_len = ft_strlen(s_num);
+	if (flags->zero == 1)
+		return (blank_num);
+	if (flags->dot == 0 && num_len > 0 && num == 0)
+		num_len--;
+	if (flags->width > (num_len + zero_num))
+		blank_num = flags->width - (num_len + zero_num);
+	return (blank_num);
+}
+
+void		print_x(unsigned int num, t_flags *flags, char c)
+{
+	char *base;
+	char *s_num;
+	int zero_num;
+	int blank_num;
+
+	if (c == 'x')
+		base = "0123456789abcdef";
+	else
+		base = "0123456789ABCDEF";
+	s_num = ft_uitoa_base(num, base);
+	if (flags->dot >= 0 && flags->zero == 1)
+		flags->zero = 0;
+	zero_num = zero_number_ui(s_num, flags);
+	blank_num = blank_number_ui(s_num, flags, zero_num, num);
+	if (flags->minus == 1)
+	{
+		ft_putchar_base('0', zero_num);
+		if (num != 0 || flags->dot != 0)
+			ft_putstr(s_num);
+		ft_putchar_base(' ', blank_num);
+	}
+	else
+	{
+		ft_putchar_base(' ', blank_num);
+		ft_putchar_base('0', zero_num);
+		if (num != 0 || flags->dot != 0)
+			ft_putstr(s_num);
+	}
+	free(s_num);
+	s_num = 0;
+}
+
 void		format_specifier(va_list ap, char c, t_flags *flags) //cspdiuxX%
 {
 	if (c == 'd' || c == 'i')
@@ -387,6 +478,8 @@ void		format_specifier(va_list ap, char c, t_flags *flags) //cspdiuxX%
 		print_p(va_arg(ap, long long), flags);
 	else if (c == '%')
 		print_percent(flags);
+	else if (c == 'x' || c == 'X')
+		print_x(va_arg(ap, unsigned int), flags, c);
 	else
 		return ;
 }
@@ -430,10 +523,9 @@ int				ft_printf(const char *fmt, ...)
 
 // int main()
 // {	
-// 	printf("-->|%0*.%|<--\n", 2);	
-	
+// 	printf("-->|%-4.x|<--\n", 0);
 // 	printf("\n");
-// 	ft_printf("-->|%0*.%|<--\n", 2);	
+// 	ft_printf("-->|%-4.x|<--\n", 0);
 
 // 	// system("leaks a.out > leaks_result_temp; cat leaks_result_temp | grep leaked && rm -rf leaks_result_temp");
 // }
