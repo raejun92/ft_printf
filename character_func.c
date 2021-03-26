@@ -1,5 +1,6 @@
 #include "ft_printf.h"
 
+// 기능 : (-)플래그, width를 적용하여 문자 출력, 리턴 : void
 void		print_c(char c, t_flags *flags)
 {
 	if (flags->minus == 1)
@@ -16,6 +17,7 @@ void		print_c(char c, t_flags *flags)
 	}
 }
 
+// 기능 : (-)플래그, width, precision를 적용하여 문자열 출력, 리턴 : void
 void		print_s(char *s, t_flags *flags)
 {
 	int s_len;
@@ -23,8 +25,8 @@ void		print_s(char *s, t_flags *flags)
 	if (!s)
 		s = "(null)";
 	s_len = ft_strlen(s);
-	if (flags->dot >= 0 && flags->dot < s_len)
-		s_len = flags->dot;
+	if (flags->dot >= 0 && flags->dot < s_len) // precision이 존재하는데 s_len보다 작으면 precision만큼 문자 출력
+		s_len = flags->dot; // precision이 0이면 아무 문자도 출력 안함
 	if (flags->minus == 1)
 	{
 		ft_putstr_base(s, s_len);
@@ -39,7 +41,8 @@ void		print_s(char *s, t_flags *flags)
 	}
 }
 
-void		print_percent(t_flags *flags)
+// 기능 : (-)(0)플래그, width를 적용하여 % 출력, 리턴 : void
+void		print_percent(t_flags *flags) //
 {
 	int width_num;
 

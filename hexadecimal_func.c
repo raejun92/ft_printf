@@ -1,5 +1,7 @@
 #include "ft_printf.h"
 
+
+// 기능 : (-)플래그, width, precision(0만 가능)을 활용하여 포인터값을 16진로 출력, 리턴 : void
 void		print_p(long long p, t_flags *flags)
 {
 	char	*p_str;
@@ -9,7 +11,7 @@ void		print_p(long long p, t_flags *flags)
 	zero_x = "0x";
 	p_str = ft_ltoa(p);
 	p_len = ft_strlen(p_str) + 2;
-	if (flags->dot == 0 && p == 0)
+	if (flags->dot == 0 && p == 0) // 포인터값이 0이고 precision이 .만 있으면 아무것도 출력 안함
 		p_len--;
 	if (flags->minus == 1)
 	{
@@ -29,6 +31,7 @@ void		print_p(long long p, t_flags *flags)
 	}
 }
 
+// 기능 : unsigned int형의 0의 개수를 구함, 리턴 : int(0의 개수)
 int			zero_number_ui(char *s_num, t_flags *flags)
 {
 	int num_len;
@@ -45,6 +48,7 @@ int			zero_number_ui(char *s_num, t_flags *flags)
 	return (zero_num);
 }
 
+// 기능 : unsigned int형의 공백의 개수를 구함, 리턴 : int(공백 개수)
 int			blank_number_ui(unsigned int num, char *s_num, t_flags *flags, int zero_num)
 {
 	int num_len;
@@ -61,6 +65,7 @@ int			blank_number_ui(unsigned int num, char *s_num, t_flags *flags, int zero_nu
 	return (blank_num);
 }
 
+// 기능 : (-)(0)플래그, width, precision를 적용하여 숫자(unsigned int)를 16진로 출력, 리턴 : void
 void		print_x(unsigned int num, t_flags *flags, char *base)
 {
 	char	*s_num;

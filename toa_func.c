@@ -1,5 +1,6 @@
 #include "ft_printf.h"
 
+// 기능 : 숫자n을 base진수로 나누어 길이 파악, 리턴 : int(숫자 길이)
 int			ft_number_len_base(long long n, int base)
 {
 	int	i;
@@ -7,7 +8,7 @@ int			ft_number_len_base(long long n, int base)
 	i = 0;
 	if (n <= 0)
 		i += 1;
-	while (n != 0)
+	while (n)
 	{
 		n /= base;
 		i++;
@@ -15,6 +16,7 @@ int			ft_number_len_base(long long n, int base)
 	return (i);
 }
 
+// 기능 : int형 숫자를 char형 숫자로 바꿈, 리턴 : char *(숫자)
 char		*ft_itoa(int n)
 {
 	char		*str;
@@ -42,6 +44,7 @@ char		*ft_itoa(int n)
 	return (str);
 }
 
+// long long형 숫자를 char형 숫자로 바꿈, 리턴 : char *(숫자)
 char		*ft_ltoa(long long n)
 {
 	char	*str;
@@ -50,7 +53,7 @@ char		*ft_ltoa(long long n)
 	int		i;
 
 	base = "0123456789abcdef";
-	if (n < 0)
+	if (n < 0) // 포인터값은 양수만 들어옴
 		return (0);
 	len = ft_number_len_base(n, 16);
 	str = (char *)malloc(sizeof(char) * (len + 1));
@@ -66,6 +69,7 @@ char		*ft_ltoa(long long n)
 	return (str);
 }
 
+// 기능 : unsinged int형 숫자를 base_num진수로 base문자로 만듦, 리턴 : char *(base로 구성된 숫자ㅌㅈ)
 char		*ft_uitoa_base(unsigned int n, char *base, int base_num)
 {
 	unsigned int	n_tmp;

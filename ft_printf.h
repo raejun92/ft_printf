@@ -9,7 +9,7 @@
 
 int g_rst;
 
-typedef struct	s_flasg
+typedef struct	s_flags
 {
 	int minus;
 	int dot;
@@ -17,6 +17,7 @@ typedef struct	s_flasg
 	int width;
 }				t_flags;
 // ft_printf.c
+void		init_flags(t_flags *flags);
 void		flags_check(va_list ap, const char *fmt, t_flags *flags, int *i);
 void		format_specifier(va_list ap, char c, t_flags *flags);
 void		ft_vsprintf(va_list ap, const char *fmt);
