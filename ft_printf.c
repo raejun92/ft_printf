@@ -1,7 +1,7 @@
 #include "ft_printf.h"
 
 // 기능 : 플래그초기화, 리턴 : void
-void		init_flags(t_flags *flags) 
+static void	init_flags(t_flags *flags) 
 {
 	flags->minus = 0;
 	flags->zero = 0;
@@ -10,7 +10,7 @@ void		init_flags(t_flags *flags)
 }
 
 // 기능 : flags, width, precision이 존재하는지 확인, 리턴 : void
-void		flags_check(va_list ap, const char *fmt, t_flags *flags, int *i) 
+static void	flags_check(va_list ap, const char *fmt, t_flags *flags, int *i) 
 {
 	while (fmt[++(*i)] && !(ft_strchr(conversions, fmt[*i])))
 	{
@@ -23,7 +23,7 @@ void		flags_check(va_list ap, const char *fmt, t_flags *flags, int *i)
 }
 
 // 기능 : 서식지정자에 따라 출력 함수 처리가 다름, 리턴 : void
-void		format_specifier(va_list ap, char c, t_flags *flags)
+static void	format_specifier(va_list ap, char c, t_flags *flags)
 {
 	char	*base;
 
@@ -53,7 +53,7 @@ void		format_specifier(va_list ap, char c, t_flags *flags)
 }
 
 // 기능 : 일반 문자와 %서식지정자를 나누어 출력, 리턴 : void
-void		ft_vsprintf(va_list ap, const char *fmt)
+static void	ft_vsprintf(va_list ap, const char *fmt)
 {
 	int		i;
 	t_flags	*flags;

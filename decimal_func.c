@@ -1,7 +1,7 @@
 #include "ft_printf.h"
 
 // 기능 : 0을 출력할 개수를 구함, 리턴 : int(0의 개수)
-int			zero_number(int num, t_flags *flags, char *s_num)
+static int	zero_number(int num, t_flags *flags, char *s_num)
 {
 	int		zero_num;
 	int		num_len;
@@ -20,7 +20,7 @@ int			zero_number(int num, t_flags *flags, char *s_num)
 }
 
 // 기능 : 공백을 출력할 개수를 구함, 리턴 : int(공백의 개수)
-int			blank_number(int num, t_flags *flags, int zero_num, char *s_num) 
+static int	blank_number(int num, t_flags *flags, int zero_num, char *s_num) 
 {
 	int num_len;
 	int blank_num;
@@ -37,7 +37,7 @@ int			blank_number(int num, t_flags *flags, int zero_num, char *s_num)
 }
 
 // 기능 : 0과 숫자를 출력, 리턴 : void
-void		number_output(int num, int zero_num, t_flags *flags, char *s_num)
+static void	number_output(int num, int zero_num, t_flags *flags, char *s_num)
 {
 	if (flags->dot == 0 && num == 0) // precision이 0이고 값이 0이면 아무것도 출력 안함
 		return ;

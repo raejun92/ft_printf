@@ -1,7 +1,7 @@
 #include "ft_printf.h"
 
 // 기능 : 숫자n을 base진수로 나누어 길이 파악, 리턴 : int(숫자 길이)
-int			ft_number_len_base(long long n, int base)
+static int	ft_number_len_base(long long n, int base)
 {
 	int	i;
 
