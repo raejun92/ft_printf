@@ -44,7 +44,7 @@ char		*ft_itoa(int n)
 	return (str);
 }
 
-// long long형 숫자를 char형 숫자로 바꿈, 리턴 : char *(숫자)
+// long long형 숫자를 16진수 char형 숫자로 바꿈, 리턴 : char *(숫자)
 char		*ft_ltoa(long long n)
 {
 	char	*str;
@@ -69,7 +69,7 @@ char		*ft_ltoa(long long n)
 	return (str);
 }
 
-// 기능 : unsinged int형 숫자를 base_num진수로 base문자로 만듦, 리턴 : char *(base로 구성된 숫자ㅌㅈ)
+// 기능 : unsinged int형 숫자를 base_num진수로 나눠 base문자로 만듦, 리턴 : char *(base로 구성된 숫자ㅌㅈ)
 char		*ft_uitoa_base(unsigned int n, char *base, int base_num)
 {
 	unsigned int	n_tmp;

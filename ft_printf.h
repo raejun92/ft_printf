@@ -5,7 +5,7 @@
 # include <unistd.h>
 # include <stdlib.h>
 
-# define conversions "cspdiuxX%"
+# define CONVERSIONS "cspdiuxX%"
 
 int g_rst;
 
@@ -25,7 +25,7 @@ void		is_width(char fmt, t_flags *flags, va_list ap);
 void		is_precision(char fmt, t_flags *flags, va_list ap);
 
 // utils_func.c
-void		ft_free(char *s);
+void		ft_free(char **s);
 size_t		ft_strlen(const char *s);
 int			ft_isdigit(int c);
 int			ft_strchr(const char *s, int c);

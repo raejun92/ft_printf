@@ -10,11 +10,11 @@ static int	zero_number(int num, t_flags *flags, char *s_num)
 	num_len = ft_strlen(s_num);
 	if (flags->dot >= 0 && flags->zero == 1) // precision이 존재하고 (0)플래그가 켜져있으면
 		flags->zero = 0;                     // (0)플래그 끔
-	if (flags->zero == 1 && flags->width > num_len) // 0플래그인 경우(-부호를 포함한 값의 길이)
+	if (flags->zero == 1 && flags->width > num_len) // (0)플래그인 경우(-부호를 포함한 값의 길이)
 		zero_num = flags->width - num_len;
 	if (num < 0) // 음수일 때 -부호 길이 빼줌
 		num_len--;
-	if (flags->dot > 0 && flags->dot > num_len) // precision인 경우 (-부호를 포함한 값의 길이)
+	if (flags->dot > 0 && flags->dot > num_len) // precision인 경우 (-부호를 포함하지 않은 값의 길이)
 		zero_num = flags->dot - num_len;
 	return (zero_num);
 }
@@ -50,7 +50,7 @@ static void	number_output(int num, int zero_num, t_flags *flags, char *s_num)
 		ft_putstr(s_num);
 }
 
-// 기능 : (-)(0)플래그, width, precision를 적용하여 숫자(int) 출력, 리턴 : void
+// 기능 : (-)(0)플래그, width, precision를 적용하여 숫자(int)를 문자로 출력, 리턴 : void
 void		print_d(int num, t_flags *flags)
 {
 	char	*s_num;
@@ -70,10 +70,10 @@ void		print_d(int num, t_flags *flags)
 		ft_putchar_base(' ', blank_num); // 공백 출력
 		number_output(num, zero_num, flags, s_num); // 0패딩과 숫자 조합 출력
 	}
-	ft_free(s_num);
+	ft_free(&s_num);
 }
 
-// 기능 : (-)(0)플래그, width, precision를 적용하여 숫자(unsigned int) 출력, 리턴 : void
+// 기능 : (-)(0)플래그, width, precision를 적용하여 숫자(unsigned int)를 문자로 출력, 리턴 : void
 void		print_u(unsigned int num, t_flags *flags)
 {
 	char	*base;
@@ -99,5 +99,5 @@ void		print_u(unsigned int num, t_flags *flags)
 		if (num != 0 || flags->dot != 0)
 			ft_putstr(s_num);
 	}
-	ft_free(s_num);
+	ft_free(&s_num);
 }

@@ -65,7 +65,7 @@ int			blank_number_ui(unsigned int num, char *s_num, t_flags *flags, int zero_nu
 	return (blank_num);
 }
 
-// 기능 : (-)(0)플래그, width, precision를 적용하여 숫자(unsigned int)를 16진로 출력, 리턴 : void
+// 기능 : (-)(0)플래그, width, precision를 적용하여 숫자(unsigned int)를 16진수 문자 숫자로 출력, 리턴 : void
 void		print_x(unsigned int num, t_flags *flags, char *base)
 {
 	char	*s_num;
@@ -89,5 +89,5 @@ void		print_x(unsigned int num, t_flags *flags, char *base)
 		if (num != 0 || flags->dot != 0)
 			ft_putstr(s_num);
 	}
-	ft_free(s_num);
+	ft_free(&s_num);
 }

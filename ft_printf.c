@@ -1,6 +1,6 @@
 #include "ft_printf.h"
 
-// 기능 : 플래그초기화, 리턴 : void
+// 기능 : 플래그 초기화, 리턴 : void
 static void	init_flags(t_flags *flags) 
 {
 	flags->minus = 0;
@@ -12,7 +12,7 @@ static void	init_flags(t_flags *flags)
 // 기능 : flags, width, precision이 존재하는지 확인, 리턴 : void
 static void	flags_check(va_list ap, const char *fmt, t_flags *flags, int *i) 
 {
-	while (fmt[++(*i)] && !(ft_strchr(conversions, fmt[*i])))
+	while (fmt[++(*i)] && !(ft_strchr(CONVERSIONS, fmt[*i])))
 	{
 		is_flag(fmt[*i], flags);
 		is_width(fmt[*i], flags, ap);

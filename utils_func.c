@@ -1,13 +1,10 @@
 #include "ft_printf.h"
 
 // 기능 : malloc할당 해제, 리턴 : void
-void		ft_free(char *s)
+void		ft_free(char **s)
 {
-	if (s)
-	{
-		free(s);
-		s = 0;
-	}
+	free(*s);
+	*s = 0;
 }
 
 // 기능 : 문자열 길이 출력, 리턴 : size_t(문자열 길이)
